@@ -30,6 +30,8 @@ def lit_fichier(nomfic):
     Fichier qui contient deux coordonées par lignes séparés d'un espace
     Fonction va lire le fichier et renvoyer la liste des X et liste Y
     """
+    if nomfic == "Fichier_alea":
+        creer_fichier_alea(50, "Fichier_alea")
     file = open(nomfic, "r")
     listeX, listeY, = [], []
 
@@ -50,12 +52,11 @@ def trace_Nuage(nomf):
     le nuage de points correspondant.Puis renverra le nombre de points
     dessinés.
     """
-    global height, liste_y, liste_x
+    global height, liste_y, liste_x, liste_tracer_droite
     canvas.delete("all")
-    creer_fichier_alea(50, "Fichier_alea")
     # Création des axes du graphique
-    canvas.create_line(5, heights, 5, 10, fill="blue")
-    canvas.create_line(5, heights, width-10, heights, fill="blue")
+    canvas.create_line(5, 595, 5, 10, fill="blue")
+    canvas.create_line(5, 595, width-10, 595, fill="blue")
     liste_points = lit_fichier(nomf)
     for i in range(len(liste_points[0])):
         canvas.create_oval(float(liste_points[0][i]) + 5,  (height-5) - float(liste_points[1][i]),
@@ -63,14 +64,13 @@ def trace_Nuage(nomf):
                            fill="red")
 
     nbr_points = len(liste_points[0])   # ou de liste_points[1]
-
     # récupère les deux listes de coordonées
     liste_x = liste_points[0].copy()
     liste_y = liste_points[1].copy()
-    a = covariance(liste_x, liste_y) / variance(liste_x)
-    b = moyenne(liste_y) - (a * moyenne(liste_x))
-    trace_droite(a, b)
-
+    
+    j = droite_reg(liste_x,liste_y)
+    liste_tracer_droite.insert(0, j[1])
+    liste_tracer_droite.insert(0, j[0])
     return nbr_points
 
 
@@ -81,12 +81,9 @@ def trace_droite(a, b):
     Tracer une droitye entre l'ordonée à l'origine et
     le coefficient directeur
     """
-    global height, width, couleur, liste, peut_tracer, liste_x, liste_y
+    global height, width, couleur, liste, peut_tracer, liste_x, liste_y, liste_tracer_droite
     #calcule de la correlation
-    print(a, b)
-    print(liste_x)
     if len(liste_x) != 0:
-        print("ici")
         peut_tracer = forteCorrelation(liste_x, liste_y)
     
         
@@ -96,7 +93,7 @@ def trace_droite(a, b):
         y0 = b
         x1 = width       # longueur max de la droite
         y1 = fonction_lineaire
-        ligne = canvas.create_line(x0, y0, x1, y1, fill= couleur, width=2)
+        ligne = canvas.create_line(x0, y0, x1, y1, fill= couleur, width=3)
         liste.append(ligne)
 
 
@@ -210,59 +207,71 @@ def ajout_point(event):
             if len(liste) != 0:
                 canvas.delete(liste[-1])
         j = droite_reg(liste_x,liste_y)
-        trace_droite(j[0], j[1])        
+        liste_tracer_droite.insert(0, j[1])
+        liste_tracer_droite.insert(0, j[0])       
 
         
 def extraire_info_fichier():
     global liste_x, liste_y
     n = int(input("Choississez le nombre de points que vous voulez: "))
     info_villes = pandas.read_csv("villes_virgule.csv")
-    info_x = info_villes.loc[(info_villes["nb_hab_2010"] <= 500) , "nb_hab_2010"]
-    info_y = info_villes.loc[(info_villes["nb_hab_2012"] <= 500) , "nb_hab_2012"]
-    liste_x.append(info_x)
+    a = info_villes.loc[(info_villes["nb_hab_2010"] <= 500) & (info_villes["nb_hab_2012"] <= 500) , ["nb_hab_2010", "nb_hab_2012"]]
+    file = open("donnees_villes_hab", "w")
+    file.write(str(a))
+    file.close()
+    info_y = [i for i in range(5, n+6)]
     liste_y.append(info_y)
-    print(liste_x, liste_y)
-    for i in range(len(liste_x)):
-        canvas.create_oval(liste_x[i] ,  liste_y[i],
-                            liste_x[i] + 4,  liste_y[i] + 4,
+    for i in range(n):
+        canvas.create_oval(liste_x[int(i)] ,  liste_y[i],
+                            liste_x[int(i)] + 4,  liste_y[i] + 4,
                             fill="red")
 
     j = droite_reg(liste_x,liste_y)
-    trace_droite(j[0], j[1])        
+    liste_tracer_droite.insert(0, j[1])
+    liste_tracer_droite.insert(0, j[0])    
 
-
+    
 
 # Programme Principale
 
 # Constantes et Variables globale
-width , height = 600, 600
-heights = 595
+width , height = 600, 600               # Taille de la fenêtre
 liste = []
-liste_couleur = ["green", "blue", "red", "yellow", "orange", "purple", 
-"white", "pink"]
+liste_couleur = ["green", "red", "yellow", "orange", "purple", "white", "pink"]
 couleur = liste_couleur[randint(0, len(liste_couleur)-1)]
 peut_tracer = True
 liste_x, liste_y = [], []
 dessin = False
+liste_tracer_droite = [randint(0, 3), randint(5, width)]
 
 # Création de la fenêtre
 ecran = tk.Tk()
+ecran.geometry("1000x700")
+ecran.title("Projet Statistiques descriptive à deux variables: droite de régression.")
+ecran.config(bg="grey")
 
-canvas = tk.Canvas(ecran, bg="black", width=width, height=height)
-canvas.grid(row=0 ,column=0, columnspan=3)
+canvas = tk.Canvas(ecran, bg="blue", width=width, height=height)
+canvas.grid(row=0 ,column=0, rowspan=11, pady=5, padx=5)
 
 
-tk.Button(ecran, text="Graphique", command=lambda:print(trace_Nuage("Fichier_alea"))).grid(row=1 ,column=0)
-tk.Button(ecran, text="Trace_droite", command=lambda:(trace_droite(randint(0,3),randint(0,100)))).grid(row=1 ,column=1)
-tk.Button(ecran, text="Quitter", command=ecran.quit).grid(row=1 ,column=2)
-tk.Button(ecran, text="Autre couleur", command=changer_couleur).grid(row=2 ,column=2)
-tk.Button(ecran, text="fichier_csv", command=extraire_info_fichier).grid(row=2 ,column=3)
+tk.Label(ecran, text="Tracer la dorite de corrélation.", fg="red", bg="grey").grid(row=2, column=1)
+tk.Button(ecran, text="Trace_droite correlation", command=lambda:(trace_droite(liste_tracer_droite[0],liste_tracer_droite[1]))).grid(row=3 ,column=1)
+
+tk.Button(ecran, text="Autre couleur", command=changer_couleur).grid(row=4 ,column=1)
+
+tk.Label(ecran, text="Nuages de points suivant configuration", fg="red", bg="grey").grid(row=5, column=1)
+tk.Button(ecran, text="Nuages de points: Fichier Alea", command=lambda:trace_Nuage("Fichier_alea")).grid(row=6 ,column=1)
+tk.Button(ecran, text="Nuages de points: Fichier exemple.txt", command=lambda:trace_Nuage("exemple.txt")).grid(row=7 ,column=1)
+
+tk.Button(ecran, text="Quitter", command=ecran.quit).grid(row=8,column=1)
+
+
+tk.Button(ecran, text="fichier_csv", command=extraire_info_fichier).grid(row=9 ,column=1)
 
 # ajout des boutons pour activer et désaactiver la partie dessin
-tk.Button(ecran, text="Activer", command=activer).grid(row=0, column=4)
-tk.Button(ecran, text="Désactiver", command=desactiver).grid(row=1, column=4)
+tk.Button(ecran, text="Activer", command=activer).grid(row=10, column=1)
+tk.Button(ecran, text="Désactiver", command=desactiver).grid(row=10, column=2)
 
 canvas.bind("<Button>", ajout_point)
-
 ecran.mainloop()
 
