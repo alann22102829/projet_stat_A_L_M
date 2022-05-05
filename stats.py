@@ -110,7 +110,7 @@ def trace_droite(a, b):
 def moyenne(serie):
     somme = 0
     for elt in serie:
-        somme += elt
+        somme += float(elt)
     moyenne = somme / len(serie)
     return moyenne
 
@@ -119,7 +119,7 @@ def variance(serie):
     moyenne_serie = moyenne(serie)
     somme = 0
     for elt in serie:
-        somme += (elt - moyenne_serie)**2
+        somme += (float(elt) - moyenne_serie)**2
     variance_serie = somme / len(serie)
     return variance_serie
 
@@ -129,7 +129,7 @@ def covariance(serieX, serieY):
     moyenne_serieY = moyenne(serieY)
     produit = 0
     for i in range(len(serieX)):
-        produit += (serieX[i] - moyenne_serieX)*((serieY[i] - moyenne_serieY))
+        produit += (float(serieX[i]) - moyenne_serieX)*((float(serieY[i]) - moyenne_serieY))
     covariance_series = produit / len(serieX)
     return covariance_series
 
@@ -173,7 +173,7 @@ def aide():
 # PARTIE 3
 
 def changer_couleur():
-    global couleur, liste_couleur, couleur, liste
+    global couleur, liste_couleur
     couleur = liste_couleur[randint(0, len(liste_couleur)-1)]
 
 def desactiver():
@@ -201,35 +201,81 @@ def ajout_point(event):
                            fill="red")
         liste_x.append(event.x)
         liste_y.append(event.y)
-        print(liste_x)
-        if len(liste_x) > 2:
-            print(liste)
-            if len(liste) != 0:
+        if len(liste_x) > 2:                        # peut pas tracer de droites tant que l'on a pas plus de deux points
+            if len(liste) != 0:                     # supprime la ligne précédante 
                 canvas.delete(liste[-1])
-        j = droite_reg(liste_x,liste_y)
-        liste_tracer_droite.insert(0, j[1])
-        liste_tracer_droite.insert(0, j[0])       
+            j = droite_reg(liste_x,liste_y)
+            liste_tracer_droite.insert(0, j[1])
+            liste_tracer_droite.insert(0, j[0])       
 
         
 def extraire_info_fichier():
-    global liste_x, liste_y
-    n = int(input("Choississez le nombre de points que vous voulez: "))
-    info_villes = pandas.read_csv("villes_virgule.csv")
-    a = info_villes.loc[(info_villes["nb_hab_2010"] <= 500) & (info_villes["nb_hab_2012"] <= 500) , ["nb_hab_2010", "nb_hab_2012"]]
-    file = open("donnees_villes_hab", "w")
-    file.write(str(a))
-    file.close()
-    info_y = [i for i in range(5, n+6)]
-    liste_y.append(info_y)
-    for i in range(n):
-        canvas.create_oval(liste_x[int(i)] ,  liste_y[i],
-                            liste_x[int(i)] + 4,  liste_y[i] + 4,
-                            fill="red")
+    """Préciser qu on a trouver cette idée sur internet totalist()"""
+    global liste_x, liste_y, nombre_choisi
+    canvas.delete("all")
+    if nombre_choisi != 0:
+        info_villes = pandas.read_csv("villes_virgule.csv")
+        a = info_villes.loc[(info_villes["nb_hab_2010"] <= 500) & (info_villes["nb_hab_2012"] <= 500) , ["nb_hab_2010", "nb_hab_2012"]]
+        # tolist() va permettre de récupérer les valeurs de la colone choisis dans la base qu'on a récupérer à la ligne précedante
+        nb_2010 = a["nb_hab_2010"].tolist()             
+        nb_2012 = a["nb_hab_2012"].tolist()
+        
+        file = open("donnees_villes_hab", "w")
+        for i in range(nombre_choisi):
+            file.write(f"{int(nb_2010[i])} {int(nb_2012[i])}\n")
+        file.close()
+        file_2 = open("donnees_villes_hab", "r")
+        for i in range(nombre_choisi):
+            ligne = file_2.readline()
+            coords = ligne.split()
+            liste_x.append(coords[0])
+            liste_y.append(coords[1])
+        file_2.close()
+        for i in range(nombre_choisi):
+            canvas.create_oval(float(liste_x[(i)]) ,  float(liste_y[i]),
+                                float(liste_x[i]) + 4,  float(liste_y[i]) + 4,
+                                fill="red")
 
-    j = droite_reg(liste_x,liste_y)
-    liste_tracer_droite.insert(0, j[1])
-    liste_tracer_droite.insert(0, j[0])    
+        j = droite_reg(liste_x,liste_y)
+        liste_tracer_droite.insert(0, j[1])
+        liste_tracer_droite.insert(0, j[0])    
 
+
+
+def extraire_info_fichier_2():
+    """Préciser qu on a trouver cette idée sur internet totalist()"""
+    global liste_x, liste_y, nombre_choisi
+    canvas.delete("all")
+    if nombre_choisi != 0:
+        info_pourboires = pandas.read_csv("pourboire.csv")
+        a = info_pourboires.loc[(info_pourboires["TOTBILL"] < 50) & (info_pourboires["TIP"] < 5) , ["TOTBILL", "TIP"]]
+        # tolist() va permettre de récupérer les valeurs de la colone choisis dans la base qu'on a récupérer à la ligne précedante
+        addition = a["TOTBILL"].tolist()             
+        prix_pourboire =  a["TIP"].tolist()
+        
+        file = open("donnees_pourboires", "w")
+        for i in range(nombre_choisi):
+            file.write(f"{int(addition[i])} {int(prix_pourboire[i])}\n")
+        file.close()
+        file_2 = open("donnees_pourboires", "r")
+        for i in range(nombre_choisi):
+            ligne = file_2.readline()
+            prix = ligne.split()
+            liste_x.append(prix[0])
+            liste_y.append(prix[1])
+        file_2.close()
+        for i in range(nombre_choisi):
+            canvas.create_oval(float(liste_x[(i)]*10) ,  float(liste_y[i]*100),
+                                float(liste_x[i]*10) + 4,  float(liste_y[i]*100) + 4,
+                                fill="red")
+
+        j = droite_reg(liste_x,liste_y)
+        liste_tracer_droite.insert(0, j[1])
+        liste_tracer_droite.insert(0, j[0])    
+
+def valeur_entrer():
+    global nombre_choisi
+    nombre_choisi = int(entry.get())
     
 
 # Programme Principale
@@ -243,6 +289,10 @@ peut_tracer = True
 liste_x, liste_y = [], []
 dessin = False
 liste_tracer_droite = [randint(0, 3), randint(5, width)]
+nombre_choisi = 0
+
+
+
 
 # Création de la fenêtre
 ecran = tk.Tk()
@@ -254,23 +304,29 @@ canvas = tk.Canvas(ecran, bg="blue", width=width, height=height)
 canvas.grid(row=0 ,column=0, rowspan=11, pady=5, padx=5)
 
 
-tk.Label(ecran, text="Tracer la dorite de corrélation.", fg="red", bg="grey").grid(row=2, column=1)
-tk.Button(ecran, text="Trace_droite correlation", command=lambda:(trace_droite(liste_tracer_droite[0],liste_tracer_droite[1]))).grid(row=3 ,column=1)
+tk.Button(ecran, text="Trace_droite correlation", command=lambda:(trace_droite(liste_tracer_droite[0],liste_tracer_droite[1])))\
+    .grid(row=1 ,column=1, padx=50)
 
-tk.Button(ecran, text="Autre couleur", command=changer_couleur).grid(row=4 ,column=1)
-
-tk.Label(ecran, text="Nuages de points suivant configuration", fg="red", bg="grey").grid(row=5, column=1)
-tk.Button(ecran, text="Nuages de points: Fichier Alea", command=lambda:trace_Nuage("Fichier_alea")).grid(row=6 ,column=1)
-tk.Button(ecran, text="Nuages de points: Fichier exemple.txt", command=lambda:trace_Nuage("exemple.txt")).grid(row=7 ,column=1)
-
-tk.Button(ecran, text="Quitter", command=ecran.quit).grid(row=8,column=1)
+tk.Button(ecran, text="Autre couleur", command=changer_couleur).grid(row=2 ,column=1, padx=50)
 
 
-tk.Button(ecran, text="fichier_csv", command=extraire_info_fichier).grid(row=9 ,column=1)
+tk.Button(ecran, text="Nuages de points: Fichier Alea", command=lambda:trace_Nuage("Fichier_alea")).grid(row=4 ,column=1, padx=50)
+tk.Button(ecran, text="Nuages de points: Fichier exemple.txt", command=lambda:trace_Nuage("exemple.txt")).grid(row=5,column=1, padx=50)
+
+tk.Button(ecran, text="Quitter", command=ecran.quit).grid(row=10,column=1)
+
+
+tk.Button(ecran, text="villes_virgules.csv", command=extraire_info_fichier).grid(row=6,column=1)
+tk.Button(ecran, text="pourboire.csv", command=extraire_info_fichier_2).grid(row=6,column=2)
 
 # ajout des boutons pour activer et désaactiver la partie dessin
-tk.Button(ecran, text="Activer", command=activer).grid(row=10, column=1)
-tk.Button(ecran, text="Désactiver", command=desactiver).grid(row=10, column=2)
+tk.Button(ecran, text="Activer", command=activer).grid(row=9, column=1)
+tk.Button(ecran, text="Désactiver", command=desactiver).grid(row=9, column=2)
+
+tk.Label(ecran, text="Entrez le nombre de points que vous voulez. Doit être différente de 0 :").grid(row=7, column=1)
+entry = tk.Entry(ecran, bg="white", fg="red")
+entry.grid(row=8, column=1)
+tk.Button(ecran, text="Valider", command=valeur_entrer).grid(row=8, column=2)
 
 canvas.bind("<Button>", ajout_point)
 ecran.mainloop()
