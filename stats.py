@@ -4,6 +4,7 @@ import tkinter as tk
 from math import sqrt
 import os as os
 import pandas
+from tkinter.filedialog import askopenfilename
 
 # Création des fonctions
 # PARTIE 1
@@ -108,14 +109,14 @@ def trace_droite(a, b):
 # PARTIE 2
 
 def moyenne(serie):
+    """Fonction qui renvoi la moyenne d'une série"""
     somme = 0
-    for elt in serie:
-        somme += float(elt)
-    moyenne = somme / len(serie)
+    moyenne = sum(serie) / len(serie)
     return moyenne
 
 
 def variance(serie):
+    """Fonction qui renvoi la variance d'une série"""
     moyenne_serie = moyenne(serie)
     somme = 0
     for elt in serie:
@@ -125,6 +126,7 @@ def variance(serie):
 
 
 def covariance(serieX, serieY):
+    """Fonction qui renvoie la covariance entre deux séries"""
     moyenne_serieX = moyenne(serieX) 
     moyenne_serieY = moyenne(serieY)
     produit = 0
@@ -135,6 +137,7 @@ def covariance(serieX, serieY):
 
 
 def correlation(serieX, serieY):
+    """Fonction qui renvoi la correlation entre deux séries"""
     variance_serieX = variance(serieX) 
     variance_serieY = variance(serieY)
     covariance_series = covariance(serieX, serieY)
@@ -143,7 +146,9 @@ def correlation(serieX, serieY):
 
 
 def forteCorrelation(serieX, serieY):
-    
+    """Fonction qui prend deux listes de nombres flottants en argument
+    et verifie si il y a une forte correlation entre les deux listes
+    elle renvoie donc un booléen"""
     corr = correlation(serieX, serieY)
     if corr < 0.8 and corr > -0.8:
         return True
@@ -151,14 +156,22 @@ def forteCorrelation(serieX, serieY):
         return False
  
 def droite_reg(serieX, serieY):
+    """Fonction qui Trace a partir des les listes de Position x et y, la droite de regression"""
     a = covariance(serieX,serieY)/variance(serieX)
-    b= moyenne(serieY) - a * moyenne(serieX)
+    b = moyenne(serieY) - a * moyenne(serieX)
     return (a,b)
 
 
 def aide():
-    os.system("start https://google.fr")
+    """Fonction qui renvoi vers le README de Github"""
+    os.system("start https://github.com/uvsq22106064/Projet-stats#readme")
+    
 
+def charger():
+    """Charge une configuration choisit par l'utilisateur."""
+    global filename
+    filename = askopenfilename(title="Charger une configuration", filetypes=[
+                               ("Fichier .txt", ".txt")])
 
 # Série de test partie 2
 #print(moyenne([4, 6, 5, 6, 8, 4, 6, 5, 10, 5]))
@@ -215,6 +228,8 @@ def extraire_info_fichier():
     canvas.delete("all")
     if nombre_choisi != 0:
         info_villes = pandas.read_csv("villes_virgule.csv")
+        b = info_villes.loc[:,:]
+        print(b)
         a = info_villes.loc[(info_villes["nb_hab_2010"] <= 500) & (info_villes["nb_hab_2012"] <= 500) , ["nb_hab_2010", "nb_hab_2012"]]
         # tolist() va permettre de récupérer les valeurs de la colone choisis dans la base qu'on a récupérer à la ligne précedante
         nb_2010 = a["nb_hab_2010"].tolist()             
@@ -247,8 +262,10 @@ def extraire_info_fichier_2():
     global liste_x, liste_y, nombre_choisi
     canvas.delete("all")
     if nombre_choisi != 0:
-        info_pourboires = pandas.read_csv("pourboire.csv")
-        a = info_pourboires.loc[(info_pourboires["TOTBILL"] < 50) & (info_pourboires["TIP"] < 5) , ["TOTBILL", "TIP"]]
+        info_pourboires = pandas.read_csv("pourboire.csv", sep="\t")
+        b = info_pourboires.loc[:,:]
+        print(b)
+        a = info_pourboires.loc[(info_pourboires["TOTBILL"] < 50.0) & (info_pourboires["TIP"] < 5.0) , ["TOTBILL", "TIP"]]
         # tolist() va permettre de récupérer les valeurs de la colone choisis dans la base qu'on a récupérer à la ligne précedante
         addition = a["TOTBILL"].tolist()             
         prix_pourboire =  a["TIP"].tolist()

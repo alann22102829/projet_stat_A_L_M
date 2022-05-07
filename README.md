@@ -98,7 +98,7 @@ Explication des fonctions:
     On entre ensuite ses données dans un fichier texte puis on lit ce fichier et trace le nuage de point des habitants de 2010 en fonction des habitants de 2012. 
     8) Fonction extraire_info_fichier_2(): Même utilisation que la fonction précédante sauf qu'on ne lit pas le même fichier. On va lire
     un fichier qui va tracer un nuage de point du prix d'un repas en dessous de 50 euros en fonction du montant du pourboire versé pour ce repas. 
-    9) Fonction valeur_entry() : affecte à la variabe gloabale nombre_choisi, le nombre entré par l'utilisateur. 
+    9) Fonction valeur_entry() : affecte à la variable gloabal le nombre_choisi, le nombre entré par l'utilisateur. 
 
 
                                                 Bonus 
